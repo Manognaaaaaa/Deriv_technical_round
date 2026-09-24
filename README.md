@@ -7,6 +7,8 @@ A small Python CLI that answers customer-support questions from a local FAQ know
 
 > **Notice:** Answers are AI-generated support information drawn only from the knowledge base. They are **not legal, tax or financial advice**.
 
+**Quick start:** see [How to use the CLI](#how-to-use-the-cli-step-by-step).
+
 ## Architecture
 
 ```mermaid
@@ -39,33 +41,151 @@ A stage state machine (`pipeline.py`) enforces the order. Calling ANSWER or ABST
 | `config.py` | all thresholds, word lists and settings |
 | `logutil.py` | JSONL logging + PII redaction |
 
-## Setup
+## How to use the CLI (step by step)
+
+This is a command-line tool. You type a question after `python app.py`, and it prints a JSON answer with citations, or an abstention if the knowledge base does not cover the question.
+
+### Step 1: Install Python
+
+You need Python 3.10 or newer. Check your version with:
+
+```bash
+python --version
+```
+
+### Step 2: Open a terminal in the project folder
+
+```powershell
+cd path\to\Deriv
+```
+
+### Step 3: Create a virtual environment (first time only)
 
 ```bash
 python -m venv venv
-venv\Scripts\activate          # Windows  (source venv/bin/activate on macOS/Linux)
+```
+
+### Step 4: Activate the virtual environment
+
+**Windows (PowerShell):**
+
+```powershell
+.\venv\Scripts\Activate.ps1
+```
+
+If you see *"running scripts is disabled on this system"*, pick one of these fixes:
+
+- Allow local scripts for your user account (one time only):
+
+  ```powershell
+  Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+  ```
+
+- Or allow them for the current window only:
+
+  ```powershell
+  Set-ExecutionPolicy -Scope Process Bypass
+  ```
+
+- Or skip activation entirely and use `.\venv\Scripts\python.exe` wherever this guide says `python`.
+
+**Windows (Command Prompt):**
+
+```bat
+venv\Scripts\activate.bat
+```
+
+**macOS / Linux:**
+
+```bash
+source venv/bin/activate
+```
+
+Once it is active, your prompt starts with `(venv)`.
+
+### Step 5: Install dependencies (first time only)
+
+```bash
 pip install -r requirements.txt
 ```
 
-### `.env` (optional, LLM mode only)
-
-```bash
-cp .env.example .env           # then put your real GROQ_API_KEY in .env
-```
-
-`.env` is gitignored. The key is read with python-dotenv and is never printed or logged. If `--mode llm` is used without a key, or without the `groq` package, or if the API call fails, the app quietly falls back to rule mode.
-
-## Usage
+### Step 6: Ask a question
 
 ```bash
 python app.py "How do I reset my password?"
-python app.py "Can you guarantee my withdrawal will finish in 2 hours?"
-python app.py --json '{"question": "What 2FA methods are supported?"}'
-echo '{"question": "How long do withdrawal reviews take?"}' | python app.py
-python app.py --verbose --kb path/to/other_kb.json --mode llm "..."
 ```
 
-Mode: `--mode rule|llm`, else the `ANSWER_MODE` env var, else `rule`. KB path: `--kb`, else `KB_PATH`, else `./kb.json`.
+The `[stage] LOAD_KB`, `[stage] RETRIEVE`, ... lines are progress messages printed to stderr. The JSON below them is the answer:
+
+```json
+{
+  "question": "How do I reset my password?",
+  "decision": "answer",
+  "answer": "Users can reset their password from the login page by clicking 'Forgot password'. A reset link is sent to the registered email address.",
+  "citations": [ { "id": "doc_1", "title": "Password reset", "snippet": "..." } ],
+  "debug": { "retrieved_ids": ["doc_1"], "support_score": 1.0 }
+}
+```
+
+Now try a question the service should refuse:
+
+```bash
+python app.py "Can you guarantee my withdrawal will finish in 2 hours?"
+```
+
+This returns `"decision": "abstain"`, an empty citation list, and a message pointing the user to human support.
+
+### Step 7: Other ways to ask
+
+| What you want | Command |
+|---|---|
+| See why it answered or abstained, plus thresholds and timings | `python app.py --verbose "Can support change my email address for me?"` |
+| Send JSON through a pipe (works in every shell) | `'{"question": "What 2FA methods are supported?"}' \| python app.py` (PowerShell)<br/>`echo '{"question": "What 2FA methods are supported?"}' \| python app.py` (bash) |
+| Pass JSON with `--json` | bash / PowerShell 7+: `python app.py --json '{"question": "How long do withdrawal reviews take?"}'`<br/>PowerShell 5.1: `python app.py --json '{\"question\": \"How long do withdrawal reviews take?\"}'` |
+| Use a different knowledge base | `python app.py --kb path/to/other_kb.json "your question"` |
+| Use LLM mode (optional, see Step 8) | `python app.py --mode llm "How long do withdrawal reviews take?"` |
+| Show all options | `python app.py --help` |
+
+Defaults:
+
+- The mode comes from `--mode`, then the `ANSWER_MODE` environment variable, then `rule`.
+- The KB path comes from `--kb`, then `KB_PATH`, then `./kb.json`.
+
+To check the exit code after a run, use `echo $LASTEXITCODE` in PowerShell or `echo $?` in bash. See [Exit codes](#exit-codes).
+
+### Step 8 (optional): Enable LLM mode
+
+Rule mode needs no key. For LLM mode, copy the example env file and add your Groq API key:
+
+```bash
+cp .env.example .env        # PowerShell: Copy-Item .env.example .env
+```
+
+Then edit `.env` and set `GROQ_API_KEY=...`. You can optionally set `LLM_MODEL` to change the model.
+
+- `.env` is gitignored. The key is read with python-dotenv and is never printed or logged.
+- If there is no key, the `groq` package is missing, or the call fails, the app falls back to rule mode automatically.
+
+### Step 9: Check everything works
+
+```bash
+python validate.py       # PASS/FAIL per check; ends with "N/N checks passed"
+pytest -q                # full test suite (LLM is mocked; no key or network needed)
+python eval.py           # accuracy report over eval_questions.json
+python eval.py --sweep   # plus SUPPORT_THRESHOLD 0.50..0.90 comparison
+```
+
+### Step 10: Use your own knowledge base
+
+Edit `kb.json`, or point `--kb` at another file. The file must be a JSON list of objects with non-empty `id`, `title` and `text` fields, and every `id` must be unique. The app reads the file on every run, so there is nothing to rebuild.
+
+```json
+[
+  { "id": "faq_1", "title": "Parcel tracking", "text": "Parcels can be tracked from the Orders page." }
+]
+```
+
+When you are finished, type `deactivate` to leave the virtual environment.
 
 ## Output format
 
