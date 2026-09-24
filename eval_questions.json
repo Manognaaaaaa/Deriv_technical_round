@@ -1,0 +1,10 @@
+[
+  {"question": "How do I reset my password?", "expected_decision": "answer", "expected_citation_ids": ["doc_1"]},
+  {"question": "What 2FA methods are supported?", "expected_decision": "answer", "expected_citation_ids": ["doc_2"]},
+  {"question": "How long do withdrawal reviews take?", "expected_decision": "answer", "expected_citation_ids": ["doc_3"]},
+  {"question": "What do I need before closing my account?", "expected_decision": "answer", "expected_citation_ids": ["doc_4"]},
+  {"question": "Can you guarantee my withdrawal will finish in 2 hours?", "expected_decision": "abstain"},
+  {"question": "What tax advice do you provide for closed accounts?", "expected_decision": "abstain"},
+  {"question": "Can support change my email address for me?", "expected_decision": "abstain"},
+  {"question": "What is the minimum deposit amount?", "expected_decision": "abstain"}
+]

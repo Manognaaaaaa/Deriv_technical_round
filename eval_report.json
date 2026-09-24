@@ -1,0 +1,110 @@
+{
+  "mode": "rule",
+  "support_threshold": 0.8,
+  "metrics": {
+    "n_questions": 8,
+    "accuracy": 1.0,
+    "false_answer_rate": 0.0,
+    "abstain_rate": 0.5,
+    "citation_presence_rate": 1.0,
+    "citation_correctness_rate": 1.0
+  },
+  "questions": [
+    {
+      "question": "How do I reset my password?",
+      "expected_decision": "answer",
+      "decision": "answer",
+      "correct": true,
+      "expected_citation_ids": [
+        "doc_1"
+      ],
+      "citation_ids": [
+        "doc_1"
+      ],
+      "abstain_reason": null,
+      "support_score": 1.0
+    },
+    {
+      "question": "What 2FA methods are supported?",
+      "expected_decision": "answer",
+      "decision": "answer",
+      "correct": true,
+      "expected_citation_ids": [
+        "doc_2"
+      ],
+      "citation_ids": [
+        "doc_2"
+      ],
+      "abstain_reason": null,
+      "support_score": 1.0
+    },
+    {
+      "question": "How long do withdrawal reviews take?",
+      "expected_decision": "answer",
+      "decision": "answer",
+      "correct": true,
+      "expected_citation_ids": [
+        "doc_3"
+      ],
+      "citation_ids": [
+        "doc_3"
+      ],
+      "abstain_reason": null,
+      "support_score": 1.0
+    },
+    {
+      "question": "What do I need before closing my account?",
+      "expected_decision": "answer",
+      "decision": "answer",
+      "correct": true,
+      "expected_citation_ids": [
+        "doc_4"
+      ],
+      "citation_ids": [
+        "doc_4"
+      ],
+      "abstain_reason": null,
+      "support_score": 1.0
+    },
+    {
+      "question": "Can you guarantee my withdrawal will finish in 2 hours?",
+      "expected_decision": "abstain",
+      "decision": "abstain",
+      "correct": true,
+      "expected_citation_ids": [],
+      "citation_ids": [],
+      "abstain_reason": "out_of_scope_intent",
+      "support_score": 0.4
+    },
+    {
+      "question": "What tax advice do you provide for closed accounts?",
+      "expected_decision": "abstain",
+      "decision": "abstain",
+      "correct": true,
+      "expected_citation_ids": [],
+      "citation_ids": [],
+      "abstain_reason": "out_of_scope_intent",
+      "support_score": 0.6
+    },
+    {
+      "question": "Can support change my email address for me?",
+      "expected_decision": "abstain",
+      "decision": "abstain",
+      "correct": true,
+      "expected_citation_ids": [],
+      "citation_ids": [],
+      "abstain_reason": "low_coverage",
+      "support_score": 0.75
+    },
+    {
+      "question": "What is the minimum deposit amount?",
+      "expected_decision": "abstain",
+      "decision": "abstain",
+      "correct": true,
+      "expected_citation_ids": [],
+      "citation_ids": [],
+      "abstain_reason": "no_retrieval",
+      "support_score": 0.0
+    }
+  ]
+}

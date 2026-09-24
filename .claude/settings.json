@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "deny": ["Read(./.env)", "Read(./.env.*)", "Bash(curl *)", "Bash(rm -rf *)"],
+    "allow": ["Bash(pytest *)", "Bash(python validate.py)"]
+  }
+
+}
